@@ -4,11 +4,14 @@ import android.content.Context
 import androidx.room.Room
 import com.example.learningroomandretrofit.data.PersonDao
 import com.example.learningroomandretrofit.data.PersonDatabase
+import com.example.learningroomandretrofit.data.QuoteApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -24,5 +27,12 @@ object AppModule {
     @Provides
     fun providePersonDao(personDatabase: PersonDatabase): PersonDao {
         return personDatabase.personDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideQuoteApi(): QuoteApi {
+        return Retrofit.Builder().baseUrl("https://dummyjson.com/quotes/")
+            .addConverterFactory(GsonConverterFactory.create()).build().create(QuoteApi::class.java)
     }
 }

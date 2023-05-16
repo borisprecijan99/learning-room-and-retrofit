@@ -1,8 +1,10 @@
 package com.example.learningroomandretrofit.ui.add_person
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -14,18 +16,25 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.learningroomandretrofit.data.Person
 import com.example.learningroomandretrofit.ui.theme.LearningRoomAndRetrofitTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 @Composable
 fun AddPersonScreen(addPersonViewModel: AddPersonViewModel = hiltViewModel(), onPersonsClick: () -> Unit) {
     val uiState = addPersonViewModel.uiState
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     AddPersonScreen(
         addPersonUiState = uiState,
         onFirstNameChange = {
@@ -37,7 +46,16 @@ fun AddPersonScreen(addPersonViewModel: AddPersonViewModel = hiltViewModel(), on
         onAddPerson = {
             addPersonViewModel.addPerson(it)
         },
-        onPersonsClick = onPersonsClick
+        onPersonsClick = onPersonsClick,
+        onGetRandomQuote = {
+            coroutineScope.launch {
+                val job = async(Dispatchers.IO) {
+                    addPersonViewModel.getRandomQuote()
+                }
+                val quote = job.await()
+                Toast.makeText(context, "${quote.author}: ${quote.quote}", Toast.LENGTH_SHORT).show()
+            }
+        }
     )
 }
 
@@ -48,7 +66,8 @@ private fun AddPersonScreen(
     onFirstNameChange: (String) -> Unit = {},
     onLastNameChange: (String) -> Unit = {},
     onAddPerson: (Person) -> Unit = {},
-    onPersonsClick: () -> Unit = {}
+    onPersonsClick: () -> Unit = {},
+    onGetRandomQuote: () -> Unit = {}
 ) {
     Surface {
         Column(
@@ -99,10 +118,17 @@ private fun AddPersonScreen(
                 Text(text = "Add person")
             }
             Spacer(modifier = Modifier.height(30.dp))
-            Button(
-                onClick = onPersonsClick
-            ) {
-                Text(text = "View added persons")
+            Row {
+                Button(
+                    onClick = onPersonsClick
+                ) {
+                    Text(text = "View added persons")
+                }
+                Button(
+                    onClick = onGetRandomQuote
+                ) {
+                    Text(text = "Get random quote")
+                }
             }
         }
     }
